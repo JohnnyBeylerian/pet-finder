@@ -1,10 +1,10 @@
-# Welcome to your Lovable project
+# PetFinder - Pet Safety with QR Codes 🐾
 
-## Project info
+A web application for pet owners to register their pets and generate QR codes for quick identification and recovery if lost.
 
-**URL**: https://lovable.dev/projects/9eda60d1-87f2-4512-a769-6fd4d81e0995
+**Sprint 1**: ✅ Complete - Authentication, Pet CRUD, QR Code Generation
 
-## How can I edit this code?
+## Quick Start
 
 There are several ways of editing your application.
 
