@@ -1,3 +1,28 @@
+// Pet Images for slider
+const petImages = [
+    '/images/1.jpg',
+    '/images/2.webp',
+    '/images/3.webp',
+    '/images/4.avif',
+    '/images/5.avif'
+];
+
+let currentPetImageIndex = 0;
+
+// Initialize pet image slider
+function initPetSlider() {
+    const petSlider = document.getElementById('petSlider');
+    if (!petSlider) return;
+    
+    const updateBackground = () => {
+        petSlider.style.backgroundImage = `url('${petImages[currentPetImageIndex]}')`;
+        currentPetImageIndex = (currentPetImageIndex + 1) % petImages.length;
+    };
+    
+    updateBackground();
+    setInterval(updateBackground, 5000);
+}
+
 // Supabase Client
 const SUPABASE_URL = 'https://zfwhbdejvtlvltumkrrb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmd2hiZGVqdnRsdmx0dW1rcnJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE3NTI4OTgsImV4cCI6MjA0NzMyODg5OH0.pJlnM1pN0zRnR5PsKsQ9J7n2-v0K8V2d8B0qR3zY7Ls';
@@ -325,3 +350,4 @@ if (petSlider) {
 
 // Initialize
 checkAuthStatus();
+initPetSlider();
