@@ -70,6 +70,7 @@ function initialize() {
   checkAuthStatus();
   initPetSlider();
   setupEventListeners();
+  handlePetLink();
 }
 
 function setupEventListeners() {
@@ -430,7 +431,8 @@ async function handleFormSubmit(e) {
 
 async function generateQRForPet(pet) {
   try {
-    const petUrl = `${window.location.origin}/?pet=${pet.id}`;
+    const baseUrl = 'http://192.168.10.87:3000';
+    const petUrl = `${baseUrl}/?pet=${pet.id}`;
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=${CONFIG.QR_SIZE}x${CONFIG.QR_SIZE}&data=${encodeURIComponent(petUrl)}`;
 
     const qrDisplay = document.getElementById('qrCodeDisplay');
@@ -633,6 +635,7 @@ function displayFoundPet(pet) {
       
       <div style="display: flex; gap: 12px; margin-top: 16px;">
         <button class="btn btn-primary" onclick="contactOwner('${pet.users?.email}', '${pet.name}')"><i class="fas fa-envelope"></i> Send Email</button>
+        <button class="btn btn-success" onclick="contactWhatsApp('${pet.owner_phone}')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
         <button class="btn btn-secondary" onclick="callOwner('${pet.owner_phone}')"><i class="fas fa-phone"></i> Call Owner</button>
       </div>
     </div>
@@ -736,7 +739,8 @@ async function handleReportMissing(e) {
   e.preventDefault();
 
   if (!state.currentUser) {
-    alert('You must be logged in');
+    alert('You must be logged in to report a missing pet. Please login or create an account first.');
+    dom.loginModal?.classList.add('active');
     return;
   }
 
@@ -935,8 +939,9 @@ async function loadMissingPetsOnMap() {
             <p>MISSING - Last seen: ${mp.lost_location}</p>
             <p>Date: ${mp.lost_date}</p>
             <p>Lost for: ${daysLost} days</p>
-            <button class="contact-btn" onclick="reportSighting('${mp.pet_id}')">Report Sighting</button>
-            <button class="contact-btn" onclick="callOwner('${mp.pets.owner_phone}')">Call Owner</button>
+        <button class="contact-btn" onclick="reportSighting('${mp.pet_id}')">Report Sighting</button>
+        <button class="contact-btn" onclick="contactWhatsApp('${mp.pets.owner_phone}')">WhatsApp</button>
+        <button class="contact-btn" onclick="callOwner('${mp.pets.owner_phone}')">Call Owner</button>
           </div>
         `;
 
@@ -975,41 +980,118 @@ function displayMissingPetsList(missingPets) {
   }).join('');
 }
 
-function reportSighting(petId) {
-  const name = prompt('Your name:');
-  if (!name) return;
-  const phone = prompt('Your phone:');
-  if (!phone) return;
-  const notes = prompt('Details:');
+async function reportSighting(petId) {
+  if (!state.currentUser) {
+    alert('You must be logged in to report a sighting. Please login first.');
+    dom.loginModal?.classList.add('active');
+    return;
+  }
+  
+  // Get the pet to check owner
+  const { data: petData } = await supabase.from('pets').select('owner_id').eq('id', petId).single();
+  
+  // Prevent owner from reporting their own pet
+  if (petData && state.currentUser.id === petData.owner_id) {
+    alert('You cannot report a sighting for your own pet.');
+    return;
+  }
+  
+  const userName = state.currentUser.email || 'Anonymous';
+  const lostLocation = prompt('Where did you see this pet?');
+  if (!lostLocation) return;
+  
+  const lostTime = prompt('What time? (HH:MM)');
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
-      try {
-        const { error } = await supabase.from('pet_sightings').insert([{
-          pet_id: petId,
-          reporter_name: name,
-          reporter_phone: phone,
-          sighting_location: 'User Location',
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          sighting_date: new Date().toISOString().split('T')[0],
-          sighting_time: new Date().toTimeString().split(' ')[0],
-          notes: notes || ''
-        }]);
-
-        if (error) throw error;
-        showMessage('Sighting reported!');
-        loadMissingPetsOnMap();
-      } catch (error) {
-        alert('Error: ' + error.message);
-      }
+      await submitSighting(petId, userName, state.currentUser.phone || 'Not provided', lostLocation, lostTime, position.coords.latitude, position.coords.longitude);
     },
-    () => alert('GPS required')
+    () => {
+      // Allow without GPS
+      submitSighting(petId, userName, state.currentUser.phone || 'Not provided', lostLocation, lostTime, null, null);
+    }
   );
 }
 
-function callOwner(phone) {
-  window.open(`tel:${phone}`);
+async function submitSighting(petId, name, phone, location, time, lat, lng) {
+  try {
+    const { error } = await supabase.from('pet_sightings').insert([{
+      pet_id: petId,
+      reporter_name: name,
+      reporter_phone: phone,
+      sighting_location: location,
+      latitude: lat,
+      longitude: lng,
+      sighting_date: new Date().toISOString().split('T')[0],
+      sighting_time: time || new Date().toTimeString().split(' ')[0],
+      notes: ''
+    }]);
+
+    if (error) throw error;
+    showMessage('Sighting reported!');
+    loadMissingPetsOnMap();
+    loadSightingNotifications();
+  } catch (error) {
+    alert('Error: ' + error.message);
+  }
+}
+
+function showQRModal(petId, petName) {
+  const baseUrl = 'http://192.168.10.87:3000';
+  const petUrl = `${baseUrl}/?pet=${petId}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(petUrl)}`;
+  
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;
+    z-index: 2000;
+  `;
+  modal.innerHTML = `
+    <div style="background: white; padding: 30px; border-radius: 12px; text-align: center; max-width: 400px;">
+      <h2>${petName}'s QR Code</h2>
+      <img src="${qrUrl}" style="max-width: 250px; margin: 20px 0; border-radius: 8px;" />
+      <p style="color: #6b7280; margin-bottom: 20px;">Scan this code to view ${petName}'s profile</p>
+      <div style="display: flex; gap: 10px;">
+        <button onclick="downloadQRCode('${qrUrl}', '${petName}')" style="flex: 1; padding: 10px; background: #0f8f3d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Download</button>
+        <button onclick="printQRCode('${qrUrl}', '${petName}')" style="flex: 1; padding: 10px; background: #ff8c00; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Print</button>
+        <button onclick="this.closest('div').parentElement.remove()" style="flex: 1; padding: 10px; background: #ccc; color: #333; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function downloadQRCode(url, name) {
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${name.replace(/\s+/g, '_')}_QR.png`;
+  link.click();
+}
+
+function printQRCode(url, name) {
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>${name} QR</title></head>
+    <body style="text-align: center; padding: 40px;">
+      <h1>${name}</h1>
+      <img src="${url}" style="max-width: 400px; margin: 20px 0;" />
+      <p>Scan to view ${name}'s profile</p>
+    </body></html>
+  `);
+  w.document.close();
+  w.print();
+}
+
+function contactWhatsApp(phone) {
+  if (!phone) {
+    showMessage('Owner phone number not available');
+    return;
+  }
+  const digits = ('' + phone).replace(/\D/g, '');
+  const text = encodeURIComponent('Hi! I found your pet via PetFinder QR.');
+  const url = `https://wa.me/${digits}?text=${text}`;
+  window.open(url, '_blank');
 }
 
 // ========================================
@@ -1023,7 +1105,7 @@ function initDashboard() {
       showSection(sectionId);
       
       if (sectionId === 'feed-section') loadFeed();
-      if (sectionId === 'my-pets-section') renderMyPets();
+      if (sectionId === 'my-pets-section') { renderMyPets(); loadSightingNotifications(); }
       if (sectionId === 'map-section') setTimeout(() => initMap(), 300);
     });
   });
@@ -1034,8 +1116,10 @@ function initDashboard() {
 
   if (document.getElementById('scanner-section')) initScanner();
   
-  loadUserPets();
+  loadUserPets().then(() => loadSightingNotifications());
   loadFeed();
+  // periodically refresh notifications while on dashboard
+  setInterval(loadSightingNotifications, 30000);
 }
 
 function initQuickActions() {
@@ -1088,6 +1172,7 @@ async function loadFeed() {
           </div>
           <div class="feed-card-footer">
             <button class="btn btn-primary" onclick="reportSighting('${mp.pet_id}')"><i class="fas fa-info-circle"></i> Report Sighting</button>
+            <button class="btn btn-success" onclick="contactWhatsApp('${mp.pets.owner_phone}')"><i class="fab fa-whatsapp"></i> WhatsApp</button>
             <button class="btn btn-secondary" onclick="callOwner('${mp.pets.owner_phone}')"><i class="fas fa-phone"></i> Call Owner</button>
           </div>
         </div>
@@ -1126,7 +1211,7 @@ function renderMyPets() {
       </div>
       <div class="pet-card-actions">
         <button class="btn btn-${pet.status === 'lost' ? 'success' : 'warning'}" onclick="toggleMissingStatus('${pet.id}', '${pet.status}')"><i class="fas fa-${pet.status === 'lost' ? 'check' : 'exclamation'}"></i> Mark ${pet.status === 'lost' ? 'Found' : 'Missing'}</button>
-        <button class="btn btn-secondary" onclick="generateQR('${pet.id}')"><i class="fas fa-qrcode"></i> QR Code</button>
+        <button class="btn btn-secondary" onclick="showQRModal('${pet.id}', '${pet.name}')"><i class="fas fa-qrcode"></i> QR Code</button>
         <button class="btn btn-danger" onclick="deletePetConfirm('${pet.id}')"><i class="fas fa-trash"></i> Delete</button>
       </div>
       <div id="qr-${pet.id}" class="qr-display"></div>
@@ -1185,6 +1270,46 @@ function deletePetConfirm(petId) {
 // UTILITIES
 // ========================================
 
+async function loadSightingNotifications() {
+  if (!state.currentUser) return;
+  const container = document.getElementById('sightsNotifications');
+  const details = document.getElementById('sightsDetails');
+  if (!container || !details) return;
+
+  try {
+    // get owner's pets ids
+    const petIds = (state.userPets || []).map(p => p.id);
+    if (petIds.length === 0) { container.style.display = 'none'; return; }
+
+    const { data: sightings, error } = await supabase
+      .from('pet_sightings')
+      .select('*, pets(id, name)')
+      .in('pet_id', petIds)
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    if (error) throw error;
+
+    if (!sightings || sightings.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    container.style.display = 'block';
+    details.innerHTML = sightings.map(s => `
+      <div class="sight-item">
+        <p><strong>Pet:</strong> ${s.pets?.name || s.pet_id}</p>
+        <p><strong>Reporter:</strong> ${s.reporter_name} (${s.reporter_phone})</p>
+        <p><strong>When:</strong> ${s.sighting_date} ${s.sighting_time || ''}</p>
+        <p><strong>Location:</strong> ${s.sighting_location || 'Unknown'}</p>
+        ${s.notes ? `<p><strong>Notes:</strong> ${s.notes}</p>` : ''}
+      </div>
+    `).join('');
+  } catch (e) {
+    console.error('Failed to load sightings', e);
+  }
+}
+
 function showMessage(msg) {
   let div = document.getElementById('app-message');
   if (!div) {
@@ -1240,3 +1365,76 @@ supabase.auth.onAuthStateChange((event, session) => {
   state.currentUser = session?.user || null;
   updateUI();
 });
+
+function handlePetLink() {
+  const params = new URLSearchParams(window.location.search);
+  const petId = params.get('pet');
+  if (!petId) return;
+
+  // Show pet profile page
+  displayQRPetProfile(petId);
+}
+
+async function displayQRPetProfile(petId) {
+  try {
+    const { data: pet, error } = await supabase
+      .from('pets')
+      .select('*')
+      .eq('id', petId)
+      .single();
+
+    if (error || !pet) {
+      alert('Pet not found');
+      return;
+    }
+
+    // Create a full-page pet profile view
+    const profileHTML = `
+      <div style="min-height: 100vh; background: #f8f9fa; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto;">
+          <div style="background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 30px; text-align: center;">
+            <h1 style="color: #0f8f3d; font-size: 32px; margin-bottom: 10px;">${pet.name}</h1>
+            <p style="color: #6b7280; font-size: 16px; margin-bottom: 30px;">Pet Profile</p>
+            
+            <div style="background: #f9fafb; padding: 20px; border-radius: 8px; text-align: left; margin-bottom: 20px;">
+              <p style="margin: 12px 0;"><strong>Type:</strong> ${pet.species}</p>
+              <p style="margin: 12px 0;"><strong>Breed:</strong> ${pet.breed || 'Not specified'}</p>
+              <p style="margin: 12px 0;"><strong>Color:</strong> ${pet.color || 'Not specified'}</p>
+              <p style="margin: 12px 0;"><strong>Age:</strong> ${pet.age || 'Not specified'}</p>
+              <p style="margin: 12px 0;"><strong>Weight:</strong> ${pet.weight || 'Not specified'}</p>
+              ${pet.microchip_id ? `<p style="margin: 12px 0;"><strong>Microchip ID:</strong> ${pet.microchip_id}</p>` : ''}
+              ${pet.description ? `<p style="margin: 12px 0;"><strong>Description:</strong> ${pet.description}</p>` : ''}
+            </div>
+            
+            <div style="background: ${pet.status === 'lost' ? '#fee2e2' : '#f0fdf4'}; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <p style="margin: 0; font-weight: 600; color: ${pet.status === 'lost' ? '#dc2626' : '#10b981'};">
+                Status: ${pet.status === 'lost' ? 'MISSING' : 'SAFE'}
+              </p>
+            </div>
+            
+            <div style="background: #e8f5e9; padding: 20px; border-radius: 8px; border-left: 4px solid #0f8f3d; margin-bottom: 20px;">
+              <h3 style="margin: 0 0 12px 0; color: #0f8f3d;">Found this pet?</h3>
+              <p style="margin: 0 0 16px 0; color: #2c3e50; font-size: 14px;">
+                If you found this pet, please contact the owner immediately.
+              </p>
+              <button onclick="contactWhatsApp('${pet.owner_phone}')" style="background: #25d366; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 10px;">
+                WhatsApp Owner
+              </button>
+              <button onclick="callOwner('${pet.owner_phone}')" style="background: #0f8f3d; color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600;">
+                Call Owner
+              </button>
+            </div>
+            
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">Powered by PetFinder</p>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    document.body.innerHTML = profileHTML;
+    document.title = `${pet.name} - PetFinder`;
+  } catch (error) {
+    console.error('Error displaying pet profile:', error);
+    alert('Error loading pet profile');
+  }
+}

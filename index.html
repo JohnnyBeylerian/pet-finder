@@ -1642,6 +1642,37 @@
             gap: 24px;
             margin-top: 30px;
         }
+        
+        /* Sightings Notification Styles */
+        .sights-notification-container {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        .sights-notification {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .sights-notification h3 {
+            color: #1e40af;
+            margin-bottom: 12px;
+        }
+        
+        .sight-item {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 12px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .sight-item p {
+            margin: 4px 0;
+            font-size: 14px;
+        }
 
         .pet-card-my-pets {
             background: white;
@@ -1896,7 +1927,7 @@
                 <!-- Dashboard Navigation -->
                 <nav class="dashboard-nav">
                     <div class="nav-brand">
-                        <h2><i class="fas fa-heart"></i> Dashboard</h2>
+                        <h2>Dashboard</h2>
                     </div>
                     <div class="nav-links">
                         <button class="nav-link active" data-section="feed-section"><i class="fas fa-stream"></i> Feed</button>
@@ -1940,6 +1971,16 @@
                         <div class="section-header">
                             <h1><i class="fas fa-paw"></i> My Pets</h1>
                             <p>Manage your registered pets</p>
+                        </div>
+                        
+                        <!-- Sightings Notifications -->
+                        <div id="sightsNotifications" class="sights-notification-container" style="display: none; margin-bottom: 20px;">
+                            <div class="sights-notification alert alert-info">
+                                <h3><i class="fas fa-bell"></i> New Pet Sighting Report!</h3>
+                                <div id="sightsDetails">
+                                    <!-- Sighting details will be filled here -->
+                                </div>
+                            </div>
                         </div>
                         
                         <div id="petsList" class="pets-container">
@@ -2051,15 +2092,15 @@
                                                 <label for="petSpecies">Pet Type *</label>
                                                 <select id="petSpecies" name="petSpecies" required>
                                                     <option value="">Select pet type</option>
-                                                    <option value="dog"> Dog</option>
-                                                    <option value="cat"> Cat</option>
-                                                    <option value="bird"> Bird</option>
-                                                    <option value="rabbit"> Rabbit</option>
-                                                    <option value="hamster"> Hamster</option>
-                                                    <option value="guinea pig"> Guinea Pig</option>
-                                                    <option value="fish"> Fish</option>
-                                                    <option value="reptile"> Reptile</option>
-                                                    <option value="other"> Other</option>
+                                                    <option value="dog">Dog</option>
+                                                    <option value="cat">Cat</option>
+                                                    <option value="bird">Bird</option>
+                                                    <option value="rabbit">Rabbit</option>
+                                                    <option value="hamster">Hamster</option>
+                                                    <option value="guinea pig">Guinea Pig</option>
+                                                    <option value="fish">Fish</option>
+                                                    <option value="reptile">Reptile</option>
+                                                    <option value="other">Other</option>
                                                 </select>
                                             </div>
                                         </div>
@@ -2132,7 +2173,7 @@
                                             <div class="file-upload-area">
                                                 <input type="file" id="petPhoto" name="petPhoto" accept="image/*" style="display: none;">
                                                 <div class="upload-placeholder" onclick="document.getElementById('petPhoto').click()">
-                                                    <div class="upload-icon">📷</div>
+                                                    <div class="upload-icon"><i class="fas fa-camera"></i></div>
                                                     <h4>Add a photo of your pet</h4>
                                                     <p>A clear photo helps with identification</p>
                                                     <small>Click to browse • JPG, PNG, or GIF (max 5MB)</small>
@@ -2164,20 +2205,20 @@
                                 <!-- QR Code Result -->
                                 <div id="qrCodeResult" class="qr-result" style="display: none;">
                                     <div class="qr-success">
-                                        <div class="success-header">
-                                            <div class="success-icon">🎉</div>
-                                            <h3>Pet Registered Successfully!</h3>
-                                            <p id="petRegisteredName">Buddy has been added to your pets</p>
-                                        </div>
+                                            <div class="success-header">
+                                                <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+                                                <h3>Pet Registered Successfully!</h3>
+                                                <p id="petRegisteredName">Buddy has been added to your pets</p>
+                                            </div>
                                         
                                         <div class="qr-display-container">
                                             <div id="qrCodeDisplay" class="qr-code-image"></div>
                                             <div class="qr-info">
-                                                <h4>🏷️ Your Pet's QR Code</h4>
+                                                <h4>Your Pet's QR Code</h4>
                                                 <p>This unique QR code contains your pet's information and your contact details. Anyone who scans it will be able to contact you if your pet is found.</p>
                                                 
                                                 <div class="qr-instructions">
-                                                    <h5>📋 What to do next:</h5>
+                                                    <h5>What to do next:</h5>
                                                     <ul>
                                                         <li>Download and print the QR code</li>
                                                         <li>Attach it to your pet's collar or harness</li>
@@ -2188,7 +2229,7 @@
                                                 </div>
                                                 
                                                 <div class="qr-tips">
-                                                    <h5>💡 Pro Tips:</h5>
+                                                    <h5>Pro Tips:</h5>
                                                     <ul>
                                                         <li>Make sure the QR code is clearly visible</li>
                                                         <li>Use a durable material that won't fade</li>
@@ -2200,10 +2241,10 @@
                                         
                                         <div class="qr-actions">
                                             <button id="downloadQR" class="btn btn-success">
-                                                📥 Download QR Code
+                                                Download QR Code
                                             </button>
                                             <button id="printQR" class="btn btn-secondary">
-                                                🖨️ Print QR Code
+                                                Print QR Code
                                             </button>
                                             <button onclick="showSection('overview-section')" class="btn btn-primary">
                                                  View Dashboard
@@ -2228,7 +2269,7 @@
                         <div class="scanner-container">
                             <div class="scanner-box">
                                 <div class="camera-placeholder">
-                                    <div class="camera-icon">📷</div>
+                                    <div class="camera-icon"><i class="fas fa-camera"></i></div>
                                     <p>Click to start camera</p>
                                     <button class="btn btn-primary" onclick="startScanner()">Start Scanner</button>
                                 </div>
@@ -2238,8 +2279,8 @@
                                 <h3>How to scan:</h3>
                                 <ul>
                                     <li> Click "Start Scanner" to open camera</li>
-                                    <li>📄 Point camera at QR code on pet collar</li>
-                                    <li>📞 View pet info and contact owner</li>
+                                    <li>Point camera at the QR code on the pet's collar</li>
+                                    <li>View pet info and contact the owner</li>
                                 </ul>
                             </div>
                             
