@@ -1,263 +1,223 @@
-Pet-Finder
+# PetFinder
 
-Pet-Finder is a modern, lightweight web application designed to help reunite lost pets with their owners using QR code technology. Built with vanilla JavaScript and Supabase, it offers a simple yet powerful solution for pet safety.
-
-
+A modern web application that helps pet owners register pets, generate unique QR codes for collars/tags, and reunite with their pets faster when they go missing. When someone scans the QR code, they instantly see the pet's profile and can contact the owner via WhatsApp or report a sighting.
 
 
 
 
-Features
-Core Functionality
-
-Instant Pet Recovery: QR codes provide immediate access to owner contact information
-
-Mobile-First Design: Fully responsive interface that works on all devices
-
-Secure Authentication: Email verification with branded confirmation emails
-
-Pet Dashboard: Manage multiple pets with detailed profiles
-
-QR Code Generation: High-quality, downloadable QR codes for pet tags
-
-Dark Mode Support: Email templates adapt to user preferences
-
-User Experience
-
-No App Required: Works directly in any web browser
-
-High Performance: Pure vanilla JS with no heavy frameworks
-
-Modern UI: Clean interface with smooth animations
-
-Branded Emails: Professional email confirmations with Pet-Finder branding
-
-Real-time Updates: Instant synchronization across devices
-
-Technology Stack
-Frontend
-
-HTML5: Semantic, accessible markup
-
-CSS3: Custom styling with flexbox/grid, animations, and responsive design
-
-Vanilla JavaScript: Pure ES6+ with async/await
-
-Web APIs: File download, QR generation, local storage
-
-Backend & Services
-
-Supabase
-
-PostgreSQL database with Row Level Security (RLS)
-
-Built-in authentication and JWT tokens
-
-Real-time subscriptions
-
-Customizable email service
-
-QR Server API: External service for QR code generation
-
-Email Templates: Custom HTML templates with dark mode support
-
-Development
-
-No Build Process: Direct file serving
-
-Git: Version control
-
-Environment Variables: Secure credential setup
-
-Static Hosting: Deployable on Netlify, Vercel, GitHub Pages, etc.
-
-Quick Start
-Option 1: Instant Deploy (Recommended)
-
-Clone the repository:
-
-git clone https://github.com/bigshabs13/pet-finder.git
-cd pet-finder
 
 
-Start local server:
+## Features
 
-python3 -m http.server 3000
+**Core Functionality**
+- Secure pet registration with detailed profiles
+- Automatic QR code generation for each pet
+- Public pet profile page accessible by scanning QR code
+- WhatsApp integration for instant owner contact
+- Pet sighting reports with location tracking
+- Missing pet management and community notifications
+- Multi-pet dashboard for easy management
+- User authentication with email verification
 
+**User Experience**
+- No app required - works in any web browser
+- Mobile-friendly QR scanning interface
+- Intuitive pet registration flow
+- Real-time sighting notifications
+- Prevent self-reporting of own pets
+- Download and print QR codes for pet tags
 
-Open browser: Visit http://localhost:3000
+## Tech Stack
 
-Complete setup: Follow the guided Supabase configuration steps
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript (ES6+)
+- **Backend**: Supabase (PostgreSQL, Auth, Real-time)
+- **APIs**: QR Server for QR code generation
+- **Hosting**: Static file hosting compatible (Netlify, Vercel, GitHub Pages)
+- **Authentication**: Supabase Auth with email verification
+- **Database**: PostgreSQL with Row Level Security (RLS)
 
-Option 2: Full Setup
+## Getting Started
 
-Create Supabase Project
+**Prerequisites:**
+- Node.js/npm or Python 3 for local server
+- Supabase account (free tier available)
 
-Configure Database using DATABASE_SCHEMA.sql
+**Quick Setup:**
 
-Copy API Credentials from Supabase dashboard
+1. Clone repository:
+   ```bash
+   git clone https://github.com/bigshabs13/pet-finder.git
+   cd pet-finder
+   ```
 
-Update app.js with your project keys
+2. Configure Supabase:
+   - Create a Supabase project at https://supabase.co
+   - Copy your API URL and anonymous key
+   - Update `CONFIG` in `app.js` with your credentials
+   - Run `DATABASE_SCHEMA.sql` in Supabase SQL editor
 
-Optional: Customize email templates
+3. Start local server:
+   ```bash
+   python3 -m http.server 3000
+   # or: npx serve .
+   ```
 
-Project Structure
+4. Open browser:
+   - Desktop: http://localhost:3000
+   - Mobile (on same network): http://192.168.10.87:3000 (replace with your IP)
+   - Login or create account
+   - Add your pet and generate QR code
+
+## Project Structure
+
+```
 pet-finder/
-├── index.html                 
-├── app.js                     
-├── DATABASE_SCHEMA.sql        
-├── images/                    
-├── email-templates/           
-├── docs/                      
-├── .env.example               
-└── README.md                  
+├── index.html              # Main app UI
+├── app.js                  # All app logic & functionality
+├── DATABASE_SCHEMA.sql     # Supabase schema setup
+├── images/                 # Pet background images
+├── email-templates/        # Email confirmation templates
+└── README.md
+```
 
-Development
-Local Development
-python3 -m http.server 3000
-npx serve .
-php -S localhost:3000
+## Configuration
 
-Environment Variables
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_ANON_KEY=your-anon-key-here
+**Environment Variables** (in `app.js` CONFIG object):
+```javascript
+SUPABASE_URL: 'your-project-url'
+SUPABASE_KEY: 'your-anon-key'
+DEFAULT_LAT: 33.8547  // Default map location
+DEFAULT_LNG: 35.4747
+MAP_ZOOM: 13
+QR_SIZE: 300
+```
 
-Database Schema
+**Database Schema Includes:**
+- Users table (Supabase Auth)
+- Pets table (pet profiles with owner info)
+- Missing pets table (lost pet reports)
+- Pet sightings table (community reports)
+- Row Level Security (RLS) policies
+- Proper indexing for performance
 
-Includes:
+## How It Works
 
-pets table
+**For Pet Owners:**
+1. Create account and login
+2. Add pet with photos, breed, color, etc.
+3. Generate unique QR code
+4. Download/print QR code for collar or tag
+5. Manage multiple pets in dashboard
+6. Receive notifications when pet is sighted
 
-RLS policies
+**For Pet Finders:**
+1. Scan QR code on lost pet's collar
+2. View pet's full profile and owner info
+3. Contact owner via WhatsApp
+4. Report sighting with location and time
+5. Track missing pet on community map
 
-Indexes
+**For Missing Pet Owners:**
+1. Mark pet as missing in dashboard
+2. Community receives alert
+3. Get real-time sighting notifications
+4. Track pet locations on map
+5. Mark pet as found when reunited
 
-Storage bucket setup
+## Key Features Explained
 
-Usage Guide
-For Pet Owners
+**QR Code System:**
+- Each pet gets a unique QR code pointing to `http://your-ip:3000/?pet={petId}`
+- Scannable from phone camera or any QR reader
+- Shows instant pet profile with owner contact info
 
-Register
+**Sighting Reports:**
+- Users must be logged in to report sightings
+- Cannot report sightings for their own pets
+- Auto-captures reporter info and location
+- Owner receives instant notifications
 
-Add pet details
+**Security:**
+- Row Level Security (RLS) on all tables
+- Users can only see/edit their own pets
+- Email verification for accounts
+- No passwords stored (Supabase Auth handles it)
 
-Generate QR code
+## Deployment
 
-Download and print
-
-Attach to pet collar
-
-For Pet Finders
-
-Scan QR
-
-View pet info
-
-Contact owner
-
-Help return the pet safely
-
-Configuration Options
-Email Customization
-
-Templates:
-
-Full-featured
-
-Minimal branded
-
-Basic fallback
-
-Supabase Settings
-
-Email confirmation
-
-Secure RLS policies
-
-Optional storage bucket
-
-Real-time subscriptions
-
-Deployment
-# Netlify
+**Netlify:**
+```bash
 netlify deploy --prod --dir .
+```
 
-# Vercel
+**Vercel:**
+```bash
 vercel --prod
+```
 
-# GitHub Pages
-# Push to main with Pages enabled
+**GitHub Pages:**
+Enable Pages in repository settings and push to main
 
-Security Features
+**Self-hosted:**
+Can be deployed to any static file host. Update IP addresses in QR code generation for your server.
 
-Row Level Security
+## Security
 
-JWT authentication
+- Row Level Security (RLS) on all database tables
+- Supabase Auth with JWT tokens
+- Email verification required
+- Input validation on all forms
+- HTTPS-ready for production
+- No sensitive data exposed to frontend
 
-Email verification
+## Troubleshooting
 
-Input validation
+**QR code won't scan from phone:**
+- Ensure server is running: `python3 -m http.server 3000`
+- Use your local network IP instead of localhost
+- Check that both devices are on same WiFi
 
-HTTPS-ready
+**Supabase connection errors:**
+- Verify API URL and key in app.js
+- Check that DATABASE_SCHEMA.sql was executed
+- Confirm RLS policies are enabled
 
-Troubleshooting
+**Login/Auth issues:**
+- Clear browser cache and cookies
+- Check email for verification link
+- Verify Supabase auth is configured
 
-Supabase not configured
+**Notifications not working:**
+- Ensure you're logged in
+- Check browser console for errors
+- Verify Supabase real-time is enabled
 
-Update SUPABASE_URL and SUPABASE_ANON_KEY
+## Contributing
 
-Email not received
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-Check spam
+**Guidelines:**
+- Keep code in vanilla JavaScript (no frameworks)
+- Test across browsers and devices
+- Update README if adding new features
+- Keep UI responsive and accessible
 
-Try another provider
+## License
 
-QR code not generating
+MIT License - see LICENSE file for details
 
-Ensure API connectivity
+## Support
 
-Login issues
+- **Issues:** Report bugs on [GitHub Issues](https://github.com/bigshabs13/pet-finder/issues)
+- **Discussions:** Join [GitHub Discussions](https://github.com/bigshabs13/pet-finder/discussions)
+- **Docs:** Check `/docs` directory for detailed documentation
 
-Clear cache
+## Acknowledgments
 
-Verify schema setup
-
-Contributing
-
-Fork repository
-
-Create a feature branch
-
-Commit changes
-
-Push and open PR
-
-Development guidelines:
-
-Use vanilla JS
-
-Maintain code style
-
-Test across browsers
-
-Update docs when needed
-
-License
-
-MIT License — see LICENSE.
-
-Acknowledgments
-
-Supabase
-
-QR Server
-
-All contributors
-
-Support
-
-GitHub Issues
-
-Documentation in /docs
-
-GitHub Discussions
+- [Supabase](https://supabase.co) for backend infrastructure
+- [QR Server](https://qrserver.com) for QR code generation
+- All contributors helping keep pets safe!
