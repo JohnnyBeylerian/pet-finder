@@ -1545,6 +1545,184 @@
             color: #0f8f3d;
         }
 
+        /* Feed Page Styles */
+        .feed-container {
+            display: grid;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .feed-card {
+            background: white;
+            border-radius: 12px;
+            border-left: 4px solid #dc2626;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feed-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .feed-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .feed-card-header h3 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 22px;
+        }
+
+        .status-badge {
+            background: #dc2626;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .feed-card-body {
+            margin: 16px 0;
+        }
+
+        .feed-card-body p {
+            margin: 10px 0;
+            color: #4b5563;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .feed-card-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .feed-card-footer .btn {
+            flex: 1;
+        }
+
+        .feed-filters {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .search-input, .filter-select {
+            padding: 12px 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .search-input {
+            flex: 1;
+        }
+
+        .search-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #0f8f3d;
+            box-shadow: 0 0 0 3px rgba(15, 143, 61, 0.1);
+        }
+
+        /* Pet Card Styles */
+        .pets-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            margin-top: 30px;
+        }
+
+        .pet-card-my-pets {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+
+        .pet-card-my-pets:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .pet-card-header {
+            background: linear-gradient(135deg, #0f8f3d 0%, #0d7a31 100%);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pet-card-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .pet-status-label {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .pet-status-label.lost {
+            background: #dc2626;
+        }
+
+        .pet-status-label.safe {
+            background: #10b981;
+        }
+
+        .pet-card-body {
+            padding: 16px;
+            color: #4b5563;
+            font-size: 14px;
+        }
+
+        .pet-card-body p {
+            margin: 8px 0;
+        }
+
+        .pet-card-actions {
+            display: flex;
+            gap: 8px;
+            padding: 12px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .pet-card-actions .btn {
+            flex: 1;
+            font-size: 12px;
+            padding: 8px 12px;
+        }
+
+        .qr-display {
+            padding: 12px;
+            text-align: center;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .qr-display img {
+            max-width: 100px;
+            margin: 8px auto;
+        }
+
         @media (max-width: 768px) {
             .dashboard-nav {
                 position: fixed;
