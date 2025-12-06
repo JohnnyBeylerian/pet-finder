@@ -842,7 +842,7 @@ function addUserMessage(msg) {
   div.className = 'user-message';
   const safeText = document.createElement('div');
   safeText.textContent = msg;
-  div.innerHTML = `<div class="message-avatar">😊</div>`;
+  div.innerHTML = `<div class="message-avatar">You</div>`;
   div.appendChild(createMessageContent(safeText.textContent, true));
   container.appendChild(div);
   container.scrollTop = container.scrollHeight;
@@ -853,7 +853,7 @@ function addBotMessage(msg) {
   if (!container) return null;
   const div = document.createElement('div');
   div.className = 'bot-message';
-  div.innerHTML = `<div class="message-avatar">🤖</div>`;
+  div.innerHTML = `<div class="message-avatar">Bot</div>`;
   const content = document.createElement('div');
   content.className = 'message-content';
   content.innerHTML = msg;
@@ -892,11 +892,12 @@ function createMessageContent(text, isUser) {
 }
 
 async function generateBotResponse(userMsg, positivePrompt, negativePrompt, modelName) {
+  if (isGreeting(userMsg)) {
+    return `<p>Hey there! I'm here to help with pet care, training, safety, or missing pets. Ask me anything.</p>`;
+  }
+
   if (!isPetRelated(userMsg)) {
-    return `
-      <p><strong>PetBot scope notice</strong></p>
-      <p>I only answer pet-related questions about care, safety, missing pets, or training. Please ask about a pet and I'll help.</p>
-    `;
+    return `<p>I focus on pet topics. Ask me about your pet's care, training, safety, or missing pet steps.</p>`;
   }
 
   const topic = detectTopic(userMsg);
@@ -911,7 +912,6 @@ async function generateBotResponse(userMsg, positivePrompt, negativePrompt, mode
   return `
     <p><strong>${escapeHtml(selectedModel)}</strong> (local via Ollama)</p>
     <p>${escapeHtml(ollamaReply).replace(/\n/g, '<br>')}</p>
-    <p class="prompt-hint">Style: ${escapeHtml(positiveLine)} · Avoid: ${escapeHtml(sanitizedNegative)}</p>
     ${disclaimer}
   `;
 }
@@ -982,6 +982,12 @@ function isPetRelated(msg) {
   const text = (msg || '').toLowerCase();
   const keywords = ['pet', 'dog', 'cat', 'kitten', 'puppy', 'bird', 'parrot', 'rabbit', 'hamster', 'animal', 'leash', 'collar', 'qr', 'vet', 'groom', 'flea', 'tick'];
   return keywords.some(kw => text.includes(kw));
+}
+
+function isGreeting(msg) {
+  const text = (msg || '').trim().toLowerCase();
+  const greetings = ['hi', 'hey', 'hello', 'yo', 'sup', 'good morning', 'good evening', 'good afternoon', 'how are you', 'whats up', 'what\'s up', 'thanks', 'thank you'];
+  return greetings.some(g => text === g || text.startsWith(g));
 }
 
 function needsMedicalDisclaimer(msg, topic) {
